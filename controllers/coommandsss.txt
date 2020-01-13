@@ -1,0 +1,155 @@
+// signup to digital ocean
+// https://m.do.co/c/90857e82d426
+ 
+// check email
+ssh root@178.128.75.31
+ 
+// 55ec9e83e14eb5fc032febbbaa - password from email
+// re-paste as UNIX password
+// new password
+ 
+// add new user
+adduser fsadmin
+ 
+// login as new/admin user
+usermod -aG sudo fsadmin
+// add admin to sudo users list
+sudo su fsadmin
+ 
+// try exit and login as fsadmin to see if works
+// only if works, remove root user login authority for security
+ 
+// remove root user rights
+// hit i to edit file
+sudo vim /etc/ssh/sshd_config
+// change 'PermitRootLogin yes' to the following:
+PermitRootLogin no
+// to save and exit press ESC in your keyboard and type :wq Then hit Enter
+// ESC :wq
+ 
+// to make sure the changes are applied
+sudo service ssh restart
+// now if you try login with ssh root@178.128.75.31 you cant!!!
+ 
+// push project to bitbucket
+// create .gitignore and add the following
+/node_modules
+.env
+ 
+// push your project to GitHub
+// tutorial -> https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/
+ 
+// install node and npm in digital ocean
+curl -sL https://deb.nodesource.com/setup_10.x -o nodesource_setup.sh
+nano nodesource_setup.sh
+sudo bash nodesource_setup.sh
+sudo apt install nodejs
+ 
+// clone repo from github
+// clone both backend/frontend
+ 
+git clone https://kaloraat@github.org/kaloraat/mern-server.git project
+git clone https://kaloraat@github.org/kaloraat/mern-client.git project
+ 
+ls 
+cd project
+sudo apt-get install nginx
+ 
+// go to root directory
+cd
+cd /etc/nginx/sites-available
+ls
+sudo vim default
+ 
+// hit i to edit
+// replace location / codeblock with the following code:
+ 
+ location / {
+    proxy_pass http://localhost:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+}
+ 
+ location /api {
+    proxy_pass http://localhost:8000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+} 
+ 
+// make sure no errors
+sudo nginx -t
+ 
+// restart Nginx after making those changes
+sudo systemctl restart nginx
+cd
+ 
+// get into project. create .env and add env variables
+// do it for both frontend and backend
+// you can copy the existing .env from local developoment and make changes
+cd project
+sudo touch .env
+sudo vim .env
+ 
+// copy paste your env variables for production use
+NODE_ENV=production
+MONGO_URI=mongodb://127.0.0.1:27017/mernauth
+PORT=8000
+JWT_SECRET=KHKDLSAHFLK092859340JKHFDSLKHJ
+CLIENT_URL=http://localhost:3000
+ 
+/**
+ * USE MONGODB - DIGITAL OCEAN
+ */
+ 
+// https://www.digitalocean.com/community/tutorials/how-to-install-mongodb-on-ubuntu-18-04
+ 
+echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+ 
+sudo apt update
+ 
+sudo apt install -y mongodb
+ 
+// you should see the active (running) status printed in console
+sudo systemctl status mongodb
+ 
+ 
+// show databases 
+mongo
+show dbs
+use mernauth
+ 
+ 
+// time to go live
+//  run npm install inside both backend/frontend 
+cd
+cd client
+npm install
+sudo npm install pm2 -g
+pm2 start server.js
+ 
+// now both backend frontend is running live
+// you can acces them on
+http://178.128.75.31
+ 
+// if you need to restart all running servers
+pm2 restart all
+ 
+// each time you want to start either client or server
+pm2 start server.js
+ 
+// update user role
+ update user role to admin via terminal
+ 
+mongo
+show dbs
+use mernauth
+show collections
+db.users.find().pretty();
+db.users.update({_id: ObjectId("5d417beb2ddce58e465d6d2edfd")}, {$set: {role: 'admin'}});
+db.users.find().pretty();
